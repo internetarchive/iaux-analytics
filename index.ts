@@ -1,1 +1,1 @@
-export { YourWebComponent } from './src/your-webcomponent';
+export { ArchiveAnalytics } from './src/analytics-manager';

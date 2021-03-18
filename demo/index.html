@@ -9,6 +9,7 @@
 
     body {
       background: #fafafa;
+      font-family: sans-serif;
     }
   </style>
 </head>
@@ -17,16 +18,12 @@
 
   <script type="module">
     import { html, render } from 'lit-html';
-      import '../dist/index.js';
+      import '../dist/demo/app-root.js';
 
-    const title = 'Hello owc World!';
     render(
       html`
-        <your-webcomponent .title=${title}>
-          <div slot="my-slot">
-            Some lightDOM slotted content
-          </div>
-        </your-webcomponent>
+        <app-root>
+        </app-root>
       `,
       document.querySelector('#demo')
     );
