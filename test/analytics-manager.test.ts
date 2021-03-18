@@ -2,41 +2,6 @@ import { expect } from '@open-wc/testing';
 import Sinon, { SinonSpy } from 'sinon';
 import { ArchiveAnalytics } from '../src/analytics-manager';
 
-// let lastImage;
-
-/**
- * Used to capture the most recent image src used for a ping.
- *
- * Adds extra methods for verifying the values passed to it.
- */
-class MockImage {
-  src?: string;
-
-  // constructor() {
-  // lastImage = this;
-  // }
-
-  /**
-   * @param {String} name
-   * @return {Boolean}
-   */
-  hasParam(name: string): boolean {
-    const src = new URL(`https:${this.src}`);
-    return src.searchParams.has(name);
-  }
-
-  /**
-   * @param {String} name
-   * @return {String}
-   */
-  getParam(name: string): string | null {
-    const src = new URL(`https:${this.src}`);
-    return src.searchParams.get(name);
-  }
-}
-
-(window as any).Image = MockImage;
-
 const sandbox = Sinon.createSandbox();
 let sendBeaconSpy: SinonSpy;
 
@@ -50,20 +15,42 @@ describe('ArchiveAnalytics', () => {
     sandbox.restore();
   });
 
-  it('defaults to the ao_2 service', () => {
-    const archiveAnalytics = new ArchiveAnalytics();
-    archiveAnalytics.sendPing();
-    expect(sendBeaconSpy.calledOnce);
-    const callArgs = sendBeaconSpy.getCall(0).args[0];
-    expect(callArgs).to.contain('service=ao_2');
+  describe('Service setting', () => {
+    it('defaults to the ao_2 service', () => {
+      const archiveAnalytics = new ArchiveAnalytics();
+      archiveAnalytics.sendPing();
+      expect(sendBeaconSpy.calledOnce);
+      const callArgs = sendBeaconSpy.getCall(0).args[0];
+      expect(callArgs).to.contain('service=ao_2');
+    });
+
+    it('can customize the service', () => {
+      const archiveAnalytics = new ArchiveAnalytics({ service: 'foo_service' });
+      archiveAnalytics.sendPing();
+      expect(sendBeaconSpy.calledOnce);
+      const callArgs = sendBeaconSpy.getCall(0).args[0];
+      expect(callArgs).to.contain('service=foo_service');
+    });
   });
 
-  it('can customize the service', () => {
-    const archiveAnalytics = new ArchiveAnalytics({ service: 'foo_service' });
-    archiveAnalytics.sendPing();
-    expect(sendBeaconSpy.calledOnce);
-    const callArgs = sendBeaconSpy.getCall(0).args[0];
-    expect(callArgs).to.contain('service=foo_service');
+  describe('Image url setting', () => {
+    it('defaults to https://analytics.archive.org/0.gif', () => {
+      const archiveAnalytics = new ArchiveAnalytics();
+      archiveAnalytics.sendPing();
+      expect(sendBeaconSpy.calledOnce);
+      const callArgs = sendBeaconSpy.getCall(0).args[0];
+      expect(callArgs).to.contain('https://analytics.archive.org/0.gif?');
+    });
+
+    it('can customize the image url', () => {
+      const archiveAnalytics = new ArchiveAnalytics({
+        imageUrl: 'https://foo.org/1.gif?',
+      });
+      archiveAnalytics.sendPing();
+      expect(sendBeaconSpy.calledOnce);
+      const callArgs = sendBeaconSpy.getCall(0).args[0];
+      expect(callArgs).to.contain('https://foo.org/1.gif?');
+    });
   });
 
   describe('sendPing', () => {
@@ -84,6 +71,35 @@ describe('ArchiveAnalytics', () => {
       expect(callArgs).to.contain('snip=snap');
       expect(callArgs).to.contain('count=5');
       expect(callArgs).to.contain('version=2');
+    });
+
+    it('can ping via a pixel image', () => {
+      const container = document.createElement('div');
+      const archiveAnalytics = new ArchiveAnalytics({
+        imageContainer: container,
+        requireImagePing: true,
+      });
+      archiveAnalytics.sendPing({
+        foo: 'bar',
+      });
+      const imagePing = container.querySelector('img');
+      expect(imagePing).to.exist;
+      const url = imagePing?.src;
+      expect(url).to.contain('foo=bar');
+    });
+
+    it('document.body is the default image container', () => {
+      const archiveAnalytics = new ArchiveAnalytics({
+        requireImagePing: true,
+      });
+      archiveAnalytics.sendPing({
+        foo: 'bar',
+      });
+      const imagePing = document.body.querySelector('img');
+      expect(imagePing).to.exist;
+      const url = imagePing?.src;
+      expect(url).to.contain('foo=bar');
+      imagePing?.remove();
     });
   });
 

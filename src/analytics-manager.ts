@@ -41,7 +41,7 @@ export interface ArchiveAnalyticsInterface {
    * A general purpose analytics ping that takes arbitrary key-value pairs
    * and pings the analytics endpoint
    *
-   * @param {values} Record<string, any>
+   * @param {Record<string, any>} values
    */
   sendPing(values: Record<string, any>): void;
 
@@ -82,21 +82,35 @@ export class ArchiveAnalytics implements ArchiveAnalyticsInterface {
 
   private imageUrl: string;
 
-  private imageContainer: HTMLElement;
+  private imageContainer: Node;
+
+  /**
+   * Force an image ping inistead of using the sendBeacon API
+   *
+   * Useful to test older browser support.
+   *
+   * @private
+   * @type {boolean}
+   * @memberof ArchiveAnalytics
+   */
+  private requireImagePing: boolean;
 
   constructor(options?: {
     service?: string;
     imageUrl?: string;
-    imageContainer?: HTMLElement;
+    imageContainer?: Node;
+    requireImagePing?: boolean;
   }) {
     this.service = options?.service ?? this.DEFAULT_SERVICE;
     this.imageUrl = options?.imageUrl ?? this.DEFAULT_IMAGE_URL;
     this.imageContainer = options?.imageContainer ?? document.body;
+    this.requireImagePing = options?.requireImagePing ?? false;
   }
 
   /** @inheritdoc */
   sendPing(values?: Record<string, any>) {
     if (
+      !this.requireImagePing &&
       typeof window.navigator !== 'undefined' &&
       typeof window.navigator.sendBeacon !== 'undefined'
     ) {
@@ -138,7 +152,7 @@ export class ArchiveAnalytics implements ArchiveAnalyticsInterface {
    * @param {Record<string, any>} values Tracking parameters to pass
    */
   private sendPingViaBeacon(values?: Record<string, any>): void {
-    const url = this.generateTrackingUrl(values || {});
+    const url = this.generateTrackingUrl(values);
     window.navigator.sendBeacon(url.toString());
   }
 
@@ -147,7 +161,7 @@ export class ArchiveAnalytics implements ArchiveAnalyticsInterface {
    * @param {Record<string, any>} values Tracking parameters to pass
    */
   private sendPingViaImage(values?: Record<string, any>) {
-    const url = this.generateTrackingUrl(values || {});
+    const url = this.generateTrackingUrl(values);
     const pingImage = new Image(1, 1);
     pingImage.src = url.toString();
     pingImage.alt = '';
@@ -168,7 +182,6 @@ export class ArchiveAnalytics implements ArchiveAnalyticsInterface {
     const keys = Object.keys(outputParams);
     keys.forEach((key: string) => {
       const value = outputParams[key];
-      if (!value) return;
       url.searchParams.append(key, value);
     });
     url.searchParams.append('version', `${this.ARCHIVE_ANALYTICS_VERSION}`);
