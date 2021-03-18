@@ -82,9 +82,16 @@ export class ArchiveAnalytics implements ArchiveAnalyticsInterface {
 
   private imageUrl: string;
 
-  constructor(options?: { service?: string; imageUrl?: string }) {
+  private imageContainer: HTMLElement;
+
+  constructor(options?: {
+    service?: string;
+    imageUrl?: string;
+    imageContainer?: HTMLElement;
+  }) {
     this.service = options?.service ?? this.DEFAULT_SERVICE;
     this.imageUrl = options?.imageUrl ?? this.DEFAULT_IMAGE_URL;
+    this.imageContainer = options?.imageContainer ?? document.body;
   }
 
   /** @inheritdoc */
@@ -144,6 +151,7 @@ export class ArchiveAnalytics implements ArchiveAnalyticsInterface {
     const pingImage = new Image(1, 1);
     pingImage.src = url.toString();
     pingImage.alt = '';
+    this.imageContainer.appendChild(pingImage);
   }
 
   /**

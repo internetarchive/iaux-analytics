@@ -1,193 +1,199 @@
-// import { expect } from '@open-wc/testing';
+import { expect } from '@open-wc/testing';
+import Sinon, { SinonSpy } from 'sinon';
+import { ArchiveAnalytics } from '../src/analytics-manager';
 
 // let lastImage;
 
-// /**
-//  * Used to capture the most recent image src used for a ping.
-//  *
-//  * Adds extra methods for verifying the values passed to it.
-//  */
-// class MockImage {
-//   src?: string;
+/**
+ * Used to capture the most recent image src used for a ping.
+ *
+ * Adds extra methods for verifying the values passed to it.
+ */
+class MockImage {
+  src?: string;
 
-//   constructor() {
-//     lastImage = this;
-//   }
+  // constructor() {
+  // lastImage = this;
+  // }
 
-//   /**
-//    * @param {String} name
-//    * @return {Boolean}
-//    */
-//   hasParam(name: string): boolean {
-//     const src = new URL(`https:${this.src}`);
-//     return src.searchParams.has(name);
-//   }
+  /**
+   * @param {String} name
+   * @return {Boolean}
+   */
+  hasParam(name: string): boolean {
+    const src = new URL(`https:${this.src}`);
+    return src.searchParams.has(name);
+  }
 
-//   /**
-//    * @param {String} name
-//    * @return {String}
-//    */
-//   getParam(name: string): string | null {
-//     const src = new URL(`https:${this.src}`);
-//     return src.searchParams.get(name);
-//   }
-// }
+  /**
+   * @param {String} name
+   * @return {String}
+   */
+  getParam(name: string): string | null {
+    const src = new URL(`https:${this.src}`);
+    return src.searchParams.get(name);
+  }
+}
 
-// (window as any).Image = MockImage;
+(window as any).Image = MockImage;
 
-// describe('archive_analytics', () => {
-//   beforeEach(() => {
-//     // Don't forget to reset the state of these globals!
-//     // They're carried over from test to test.
-//     lastImage = undefined;
-//     archive_analytics.service = undefined;
-//     archive_analytics.values = {};
-//   });
+const sandbox = Sinon.createSandbox();
+let sendBeaconSpy: SinonSpy;
 
-//   test('is defined', () => {
-//     expect(archive_analytics).toBeInstanceOf(Object);
-//   });
+describe('ArchiveAnalytics', () => {
+  beforeEach(() => {
+    sandbox.stub(window.navigator, 'sendBeacon');
+    sendBeaconSpy = window.navigator.sendBeacon as SinonSpy;
+  });
 
-//   describe('send_ping', () => {
-//     test('is defined', () => {
-//       expect(archive_analytics.send_ping).toBeInstanceOf(Function);
-//     });
+  afterEach(() => {
+    sandbox.restore();
+  });
 
-//     test('sends default params', () => {
-//       archive_analytics.send_ping();
+  it('defaults to the ao_2 service', () => {
+    const archiveAnalytics = new ArchiveAnalytics();
+    archiveAnalytics.sendPing();
+    expect(sendBeaconSpy.calledOnce);
+    const callArgs = sendBeaconSpy.getCall(0).args[0];
+    expect(callArgs).to.contain('service=ao_2');
+  });
 
-//       expect(lastImage).toBeDefined();
-//       expect(lastImage.hasParam('version')).toBeTruthy();
-//       expect(lastImage.hasParam('count')).toBeTruthy();
-//     });
+  it('can customize the service', () => {
+    const archiveAnalytics = new ArchiveAnalytics({ service: 'foo_service' });
+    archiveAnalytics.sendPing();
+    expect(sendBeaconSpy.calledOnce);
+    const callArgs = sendBeaconSpy.getCall(0).args[0];
+    expect(callArgs).to.contain('service=foo_service');
+  });
 
-//     describe('with custom params', () => {
-//       test('sends custom params', () => {
-//         archive_analytics.send_ping({
-//           foo: 'bar',
-//         });
+  describe('sendPing', () => {
+    it('can send a ping via sendBeacon', () => {
+      const archiveAnalytics = new ArchiveAnalytics();
+      archiveAnalytics.sendPing();
+      expect(sendBeaconSpy.calledOnce);
+    });
 
-//         expect(lastImage).toBeDefined();
-//         expect(lastImage.getParam('foo')).toBe('bar');
-//         expect(lastImage.hasParam('version')).toBeTruthy();
-//         expect(lastImage.hasParam('count')).toBeTruthy();
-//       });
-//     });
+    it('can send arbitrary parameters', () => {
+      const archiveAnalytics = new ArchiveAnalytics();
+      archiveAnalytics.sendPing({
+        foo: 'bar',
+        snip: 'snap',
+      });
+      const callArgs = sendBeaconSpy.getCall(0).args[0];
+      expect(callArgs).to.contain('foo=bar');
+      expect(callArgs).to.contain('snip=snap');
+      expect(callArgs).to.contain('count=5');
+      expect(callArgs).to.contain('version=2');
+    });
+  });
 
-//     describe('with service property set', () => {
-//       test('sends service param', () => {
-//         archive_analytics.service = 'wb';
-//         archive_analytics.send_ping();
+  describe('sendEvent', () => {
+    it('sends an event properly', () => {
+      const archiveAnalytics = new ArchiveAnalytics();
+      archiveAnalytics.sendEvent({
+        category: 'foo',
+        action: 'bar',
+        label: 'baz',
+      });
+      const callArgs = sendBeaconSpy.getCall(0).args[0];
+      expect(callArgs).to.contain('ec=foo');
+      expect(callArgs).to.contain('ea=bar');
+      expect(callArgs).to.contain('el=baz');
+    });
 
-//         expect(lastImage).toBeDefined();
-//         expect(lastImage.getParam('service')).toBe('wb');
-//         expect(lastImage.hasParam('version')).toBeTruthy();
-//         expect(lastImage.hasParam('count')).toBeTruthy();
-//       });
-//     });
-//   });
+    it('uses window.location.pathname if no label provided', () => {
+      const archiveAnalytics = new ArchiveAnalytics();
+      archiveAnalytics.sendEvent({
+        category: 'foo',
+        action: 'bar',
+      });
+      const callArgs = sendBeaconSpy.getCall(0).args[0];
+      expect(callArgs).to.contain('ec=foo');
+      expect(callArgs).to.contain('ea=bar');
+      expect(callArgs).to.contain('el=%2F'); // forward slash (root pathname) `/`
+    });
+  });
 
-//   describe('send_scroll_fetch_event', () => {
-//     test('is defined', () => {
-//       expect(archive_analytics.send_scroll_fetch_event).toBeInstanceOf(Function);
-//     });
-//   });
+  describe('sendEventNoSampling', () => {
+    it('sets the service to ao_no_sampling', () => {
+      const archiveAnalytics = new ArchiveAnalytics();
+      archiveAnalytics.sendEventNoSampling({
+        category: 'foo',
+        action: 'bar',
+        label: 'baz',
+      });
+      const callArgs = sendBeaconSpy.getCall(0).args[0];
+      expect(callArgs).to.contain('service=ao_no_sampling');
+      expect(callArgs).to.contain('ec=foo');
+      expect(callArgs).to.contain('ea=bar');
+      expect(callArgs).to.contain('el=baz');
+    });
+  });
 
-//   describe('send_scroll_fetch_base_event', () => {
-//     test('is defined', () => {
-//       expect(archive_analytics.send_scroll_fetch_base_event).toBeInstanceOf(Function);
-//     });
-//   });
+  // describe('send_pageview', () => {
+  //   test('is defined', () => {
+  //     expect(archive_analytics.send_pageview).toBeInstanceOf(Function);
+  //   });
 
-//   describe('send_event_no_sampling', () => {
-//     test('is defined', () => {
-//       expect(archive_analytics.send_event_no_sampling).toBeInstanceOf(Function);
-//     });
+  //   describe('without options', () => {
+  //     test('sends correct params', () => {
+  //       archive_analytics.send_pageview();
 
-//     test('sets the service to ao_no_sampling', () => {
-//       archive_analytics.send_event_no_sampling('foo', 'bar', 'baz', { service: 'foo' });
+  //       expect(lastImage).toBeDefined();
+  //       expect(lastImage.getParam('kind')).toBe('pageview');
+  //       expect(lastImage.hasParam('service')).toBeTruthy();
+  //       expect(lastImage.hasParam('ga_cd1')).toBeTruthy();
+  //       expect(lastImage.hasParam('ga_cd2')).toBeTruthy();
+  //       expect(lastImage.hasParam('version')).toBeTruthy();
+  //       expect(lastImage.hasParam('count')).toBeTruthy();
+  //     });
+  //   });
 
-//       expect(lastImage).toBeDefined();
-//       expect(lastImage.getParam('service')).toBe('ao_no_sampling');
-//     });
-//   });
+  //   describe('with options', () => {
+  //     test('sends mediaType param', () => {
+  //       archive_analytics.send_pageview({
+  //         mediaType: 'texts',
+  //       });
 
-//   describe('send_pageview', () => {
-//     test('is defined', () => {
-//       expect(archive_analytics.send_pageview).toBeInstanceOf(Function);
-//     });
+  //       expect(lastImage).toBeDefined();
+  //       expect(lastImage.getParam('kind')).toBe('pageview');
+  //       expect(lastImage.hasParam('service')).toBeTruthy();
+  //       expect(lastImage.hasParam('ga_cd1')).toBeTruthy();
+  //       expect(lastImage.hasParam('ga_cd2')).toBeTruthy();
+  //       expect(lastImage.getParam('ga_cd3')).toBe('texts');
+  //       expect(lastImage.hasParam('version')).toBeTruthy();
+  //       expect(lastImage.hasParam('count')).toBeTruthy();
+  //     });
+  //     test('sends primaryCollection param', () => {
+  //       archive_analytics.send_pageview({
+  //         primaryCollection: 'primary collection',
+  //       });
 
-//     describe('without options', () => {
-//       test('sends correct params', () => {
-//         archive_analytics.send_pageview();
+  //       expect(lastImage).toBeDefined();
+  //       expect(lastImage.getParam('kind')).toBe('pageview');
+  //       expect(lastImage.hasParam('service')).toBeTruthy();
+  //       expect(lastImage.hasParam('ga_cd1')).toBeTruthy();
+  //       expect(lastImage.hasParam('ga_cd2')).toBeTruthy();
+  //       expect(lastImage.getParam('ga_cd5')).toBe('primary collection');
+  //       expect(lastImage.hasParam('version')).toBeTruthy();
+  //       expect(lastImage.hasParam('count')).toBeTruthy();
+  //     });
+  //   });
 
-//         expect(lastImage).toBeDefined();
-//         expect(lastImage.getParam('kind')).toBe('pageview');
-//         expect(lastImage.hasParam('service')).toBeTruthy();
-//         expect(lastImage.hasParam('ga_cd1')).toBeTruthy();
-//         expect(lastImage.hasParam('ga_cd2')).toBeTruthy();
-//         expect(lastImage.hasParam('version')).toBeTruthy();
-//         expect(lastImage.hasParam('count')).toBeTruthy();
-//       });
-//     });
+  //   describe('with service property set', () => {
+  //     test('sends service param', () => {
+  //       archive_analytics.service = 'ol';
+  //       archive_analytics.send_pageview();
 
-//     describe('with options', () => {
-//       test('sends mediaType param', () => {
-//         archive_analytics.send_pageview({
-//           mediaType: 'texts',
-//         });
-
-//         expect(lastImage).toBeDefined();
-//         expect(lastImage.getParam('kind')).toBe('pageview');
-//         expect(lastImage.hasParam('service')).toBeTruthy();
-//         expect(lastImage.hasParam('ga_cd1')).toBeTruthy();
-//         expect(lastImage.hasParam('ga_cd2')).toBeTruthy();
-//         expect(lastImage.getParam('ga_cd3')).toBe('texts');
-//         expect(lastImage.hasParam('version')).toBeTruthy();
-//         expect(lastImage.hasParam('count')).toBeTruthy();
-//       });
-//       test('sends primaryCollection param', () => {
-//         archive_analytics.send_pageview({
-//           primaryCollection: 'primary collection',
-//         });
-
-//         expect(lastImage).toBeDefined();
-//         expect(lastImage.getParam('kind')).toBe('pageview');
-//         expect(lastImage.hasParam('service')).toBeTruthy();
-//         expect(lastImage.hasParam('ga_cd1')).toBeTruthy();
-//         expect(lastImage.hasParam('ga_cd2')).toBeTruthy();
-//         expect(lastImage.getParam('ga_cd5')).toBe('primary collection');
-//         expect(lastImage.hasParam('version')).toBeTruthy();
-//         expect(lastImage.hasParam('count')).toBeTruthy();
-//       });
-//     });
-
-//     describe('with service property set', () => {
-//       test('sends service param', () => {
-//         archive_analytics.service = 'ol';
-//         archive_analytics.send_pageview();
-
-//         expect(lastImage).toBeDefined();
-//         expect(lastImage.getParam('kind')).toBe('pageview');
-//         expect(lastImage.getParam('service')).toBe('ol');
-//         expect(lastImage.hasParam('ga_cd1')).toBeDefined();
-//         expect(lastImage.hasParam('ga_cd2')).toBeDefined();
-//         expect(!lastImage.hasParam('ga_cd3')).toBeDefined();
-//         expect(lastImage.hasParam('version')).toBeDefined();
-//         expect(lastImage.hasParam('count')).toBeDefined();
-//       });
-//     });
-//   });
-
-//   describe('send_pageview_on_load', () => {
-//     test('is defined', () => {
-//       expect(archive_analytics.send_pageview_on_load).toBeInstanceOf(Function);
-//     });
-//   });
-
-//   describe('get_data_packets', () => {
-//     test('is defined', () => {
-//       expect(archive_analytics.get_data_packets).toBeInstanceOf(Function);
-//     });
-//   });
-// });
+  //       expect(lastImage).toBeDefined();
+  //       expect(lastImage.getParam('kind')).toBe('pageview');
+  //       expect(lastImage.getParam('service')).toBe('ol');
+  //       expect(lastImage.hasParam('ga_cd1')).toBeDefined();
+  //       expect(lastImage.hasParam('ga_cd2')).toBeDefined();
+  //       expect(!lastImage.hasParam('ga_cd3')).toBeDefined();
+  //       expect(lastImage.hasParam('version')).toBeDefined();
+  //       expect(lastImage.hasParam('count')).toBeDefined();
+  //     });
+  //   });
+  // });
+});
