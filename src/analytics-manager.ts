@@ -36,7 +36,7 @@ export type AnalyticsEvent = {
   eventConfiguration?: AnalyticsEventConfig;
 };
 
-export interface ArchiveAnalyticsInterface {
+export interface AnalyticsManagerInterface {
   /**
    * A general purpose analytics ping that takes arbitrary key-value pairs
    * and pings the analytics endpoint
@@ -63,7 +63,7 @@ export interface ArchiveAnalyticsInterface {
   sendEventNoSampling(options: AnalyticsEvent): void;
 }
 
-export class ArchiveAnalytics implements ArchiveAnalyticsInterface {
+export class AnalyticsManager implements AnalyticsManagerInterface {
   private readonly ARCHIVE_ANALYTICS_VERSION = 2;
 
   private readonly DEFAULT_SERVICE = 'ao_2';
@@ -109,14 +109,15 @@ export class ArchiveAnalytics implements ArchiveAnalyticsInterface {
 
   /** @inheritdoc */
   sendPing(values?: Record<string, any>) {
+    const url = this.generateTrackingUrl(values).toString();
     if (
       !this.requireImagePing &&
       typeof window.navigator !== 'undefined' &&
       typeof window.navigator.sendBeacon !== 'undefined'
     ) {
-      this.sendPingViaBeacon(values);
+      window.navigator.sendBeacon(url);
     } else {
-      this.sendPingViaImage(values);
+      this.sendPingViaImage(url);
     }
   }
 
@@ -147,23 +148,12 @@ export class ArchiveAnalytics implements ArchiveAnalyticsInterface {
   }
 
   /**
-   * Sends a ping via Beacon API
-   * NOTE: Assumes window.navigator.sendBeacon exists
-   * @param {Record<string, any>} values Tracking parameters to pass
-   */
-  private sendPingViaBeacon(values?: Record<string, any>): void {
-    const url = this.generateTrackingUrl(values);
-    window.navigator.sendBeacon(url.toString());
-  }
-
-  /**
    * Sends a ping via Image object
-   * @param {Record<string, any>} values Tracking parameters to pass
+   * @param {string} url Image url
    */
-  private sendPingViaImage(values?: Record<string, any>) {
-    const url = this.generateTrackingUrl(values);
+  private sendPingViaImage(url: string) {
     const pingImage = new Image(1, 1);
-    pingImage.src = url.toString();
+    pingImage.src = url;
     pingImage.alt = '';
     this.imageContainer.appendChild(pingImage);
   }
@@ -187,23 +177,5 @@ export class ArchiveAnalytics implements ArchiveAnalyticsInterface {
     url.searchParams.append('version', `${this.ARCHIVE_ANALYTICS_VERSION}`);
     url.searchParams.append('count', `${keys.length + 2}`);
     return url;
-  }
-
-  /**
-   * Handles tracking events passed in URL.
-   * Assumes category and action values are separated by a "|" character.
-   * NOTE: Uses the unsampled analytics property. Watch out for future high click links!
-   * @param {Location}
-   */
-  processIaxParameter(location: Location) {
-    const searchParams = new URLSearchParams(location.toString());
-    const iaxParam = searchParams.get('iax');
-    if (!iaxParam) return;
-    const eventValues = iaxParam.split('|');
-    const actionValue = eventValues.length >= 1 ? eventValues[1] : '';
-    this.sendEventNoSampling({
-      category: eventValues[0],
-      action: actionValue,
-    });
   }
 }

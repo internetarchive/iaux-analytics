@@ -1,1 +1,1 @@
-export { ArchiveAnalytics } from './src/analytics-manager';
+export { AnalyticsManager } from './src/analytics-manager';

@@ -1,5 +1,5 @@
 import { html, css, LitElement, customElement, query } from 'lit-element';
-import { ArchiveAnalytics } from '../src/analytics-manager';
+import { AnalyticsManager } from '../src/analytics-manager';
 
 @customElement('app-root')
 export class AppRoot extends LitElement {
@@ -11,7 +11,7 @@ export class AppRoot extends LitElement {
 
   @query('#input-form') inputForm!: HTMLFormElement;
 
-  private analyticsManager = new ArchiveAnalytics();
+  private analyticsManager = new AnalyticsManager();
 
   private sendEvent() {
     const valid = this.inputForm.reportValidity();
@@ -32,6 +32,8 @@ export class AppRoot extends LitElement {
       label: this.labelInput.value,
     });
   }
+
+  firstUpdated(): void {}
 
   render() {
     return html`

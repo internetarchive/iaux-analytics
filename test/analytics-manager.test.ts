@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import Sinon, { SinonSpy } from 'sinon';
-import { ArchiveAnalytics } from '../src/analytics-manager';
+import { AnalyticsManager } from '../src/analytics-manager';
 
 const sandbox = Sinon.createSandbox();
 let sendBeaconSpy: SinonSpy;
@@ -17,7 +17,7 @@ describe('ArchiveAnalytics', () => {
 
   describe('Service setting', () => {
     it('defaults to the ao_2 service', () => {
-      const archiveAnalytics = new ArchiveAnalytics();
+      const archiveAnalytics = new AnalyticsManager();
       archiveAnalytics.sendPing();
       expect(sendBeaconSpy.calledOnce);
       const callArgs = sendBeaconSpy.getCall(0).args[0];
@@ -25,7 +25,7 @@ describe('ArchiveAnalytics', () => {
     });
 
     it('can customize the service', () => {
-      const archiveAnalytics = new ArchiveAnalytics({ service: 'foo_service' });
+      const archiveAnalytics = new AnalyticsManager({ service: 'foo_service' });
       archiveAnalytics.sendPing();
       expect(sendBeaconSpy.calledOnce);
       const callArgs = sendBeaconSpy.getCall(0).args[0];
@@ -35,7 +35,7 @@ describe('ArchiveAnalytics', () => {
 
   describe('Image url setting', () => {
     it('defaults to https://analytics.archive.org/0.gif', () => {
-      const archiveAnalytics = new ArchiveAnalytics();
+      const archiveAnalytics = new AnalyticsManager();
       archiveAnalytics.sendPing();
       expect(sendBeaconSpy.calledOnce);
       const callArgs = sendBeaconSpy.getCall(0).args[0];
@@ -43,7 +43,7 @@ describe('ArchiveAnalytics', () => {
     });
 
     it('can customize the image url', () => {
-      const archiveAnalytics = new ArchiveAnalytics({
+      const archiveAnalytics = new AnalyticsManager({
         imageUrl: 'https://foo.org/1.gif?',
       });
       archiveAnalytics.sendPing();
@@ -55,13 +55,13 @@ describe('ArchiveAnalytics', () => {
 
   describe('sendPing', () => {
     it('can send a ping via sendBeacon', () => {
-      const archiveAnalytics = new ArchiveAnalytics();
+      const archiveAnalytics = new AnalyticsManager();
       archiveAnalytics.sendPing();
       expect(sendBeaconSpy.calledOnce);
     });
 
     it('can send arbitrary parameters', () => {
-      const archiveAnalytics = new ArchiveAnalytics();
+      const archiveAnalytics = new AnalyticsManager();
       archiveAnalytics.sendPing({
         foo: 'bar',
         snip: 'snap',
@@ -75,7 +75,7 @@ describe('ArchiveAnalytics', () => {
 
     it('can ping via a pixel image', () => {
       const container = document.createElement('div');
-      const archiveAnalytics = new ArchiveAnalytics({
+      const archiveAnalytics = new AnalyticsManager({
         imageContainer: container,
         requireImagePing: true,
       });
@@ -89,7 +89,7 @@ describe('ArchiveAnalytics', () => {
     });
 
     it('document.body is the default image container', () => {
-      const archiveAnalytics = new ArchiveAnalytics({
+      const archiveAnalytics = new AnalyticsManager({
         requireImagePing: true,
       });
       archiveAnalytics.sendPing({
@@ -105,7 +105,7 @@ describe('ArchiveAnalytics', () => {
 
   describe('sendEvent', () => {
     it('sends an event properly', () => {
-      const archiveAnalytics = new ArchiveAnalytics();
+      const archiveAnalytics = new AnalyticsManager();
       archiveAnalytics.sendEvent({
         category: 'foo',
         action: 'bar',
@@ -118,7 +118,7 @@ describe('ArchiveAnalytics', () => {
     });
 
     it('uses window.location.pathname if no label provided', () => {
-      const archiveAnalytics = new ArchiveAnalytics();
+      const archiveAnalytics = new AnalyticsManager();
       archiveAnalytics.sendEvent({
         category: 'foo',
         action: 'bar',
@@ -132,7 +132,7 @@ describe('ArchiveAnalytics', () => {
 
   describe('sendEventNoSampling', () => {
     it('sets the service to ao_no_sampling', () => {
-      const archiveAnalytics = new ArchiveAnalytics();
+      const archiveAnalytics = new AnalyticsManager();
       archiveAnalytics.sendEventNoSampling({
         category: 'foo',
         action: 'bar',
