@@ -1,4 +1,5 @@
 import { html, css, LitElement, customElement, query } from 'lit-element';
+import { AnalyticsHelpers } from '../src/analytics-helpers';
 import { AnalyticsManager } from '../src/analytics-manager';
 
 @customElement('app-root')
@@ -12,6 +13,8 @@ export class AppRoot extends LitElement {
   @query('#input-form') inputForm!: HTMLFormElement;
 
   private analyticsManager = new AnalyticsManager();
+
+  private analyticsHelper = new AnalyticsHelpers(this.analyticsManager);
 
   private sendEvent() {
     const valid = this.inputForm.reportValidity();
@@ -33,7 +36,9 @@ export class AppRoot extends LitElement {
     });
   }
 
-  firstUpdated(): void {}
+  firstUpdated(): void {
+    this.analyticsHelper.trackIaxParameter(window.location);
+  }
 
   render() {
     return html`
@@ -48,7 +53,7 @@ export class AppRoot extends LitElement {
         <fieldset>
           <legend>Configure Event</legend>
           <dl>
-            <dt>Category</dt>
+            <dt>Category*</dt>
             <dd>
               <input
                 type="text"
@@ -57,7 +62,7 @@ export class AppRoot extends LitElement {
                 required
               />
             </dd>
-            <dt>Action</dt>
+            <dt>Action*</dt>
             <dd>
               <input
                 type="text"
@@ -71,6 +76,7 @@ export class AppRoot extends LitElement {
               <input type="text" id="input-label" placeholder="MoreInfoLink" />
             </dd>
           </dl>
+          * Required
         </fieldset>
       </form>
 

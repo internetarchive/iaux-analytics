@@ -78,7 +78,7 @@ export class AnalyticsManager implements AnalyticsManagerInterface {
 
   private readonly DEFAULT_IMAGE_URL = 'https://analytics.archive.org/0.gif';
 
-  private service: string;
+  private defaultService: string;
 
   private imageUrl: string;
 
@@ -95,13 +95,23 @@ export class AnalyticsManager implements AnalyticsManagerInterface {
    */
   private requireImagePing: boolean;
 
+  /**
+   * Creates an instance of AnalyticsManager.
+   * @param {{
+   *   service?: string;
+   *   imageUrl?: string;
+   *   imageContainer?: Node;
+   *   requireImagePing?: boolean;
+   * }} [options]
+   * @memberof AnalyticsManager
+   */
   constructor(options?: {
-    service?: string;
+    defaultService?: string;
     imageUrl?: string;
     imageContainer?: Node;
     requireImagePing?: boolean;
   }) {
-    this.service = options?.service ?? this.DEFAULT_SERVICE;
+    this.defaultService = options?.defaultService ?? this.DEFAULT_SERVICE;
     this.imageUrl = options?.imageUrl ?? this.DEFAULT_IMAGE_URL;
     this.imageContainer = options?.imageContainer ?? document.body;
     this.requireImagePing = options?.requireImagePing ?? false;
@@ -165,7 +175,7 @@ export class AnalyticsManager implements AnalyticsManagerInterface {
    */
   private generateTrackingUrl(params?: Record<string, any>): URL {
     const outputParams = params ?? {};
-    outputParams.service = outputParams.service ?? this.service;
+    outputParams.service = outputParams.service ?? this.defaultService;
     const url = new URL(this.imageUrl);
 
     // Build array of querystring parameters

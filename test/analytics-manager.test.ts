@@ -25,7 +25,9 @@ describe('ArchiveAnalytics', () => {
     });
 
     it('can customize the service', () => {
-      const archiveAnalytics = new AnalyticsManager({ service: 'foo_service' });
+      const archiveAnalytics = new AnalyticsManager({
+        defaultService: 'foo_service',
+      });
       archiveAnalytics.sendPing();
       expect(sendBeaconSpy.calledOnce);
       const callArgs = sendBeaconSpy.getCall(0).args[0];

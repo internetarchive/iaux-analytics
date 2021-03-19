@@ -13,8 +13,8 @@ export class AnalyticsHelpers {
    * NOTE: Uses the unsampled analytics property. Watch out for future high click links!
    * @param {Location}
    */
-  processIaxParameter(location: Location) {
-    const searchParams = new URLSearchParams(location.toString());
+  trackIaxParameter(location: Location) {
+    const searchParams = new URLSearchParams(location.search);
     const iaxParam = searchParams.get('iax');
     if (!iaxParam) return;
     const eventValues = iaxParam.split('|');
