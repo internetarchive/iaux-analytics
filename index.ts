@@ -1,1 +1,1 @@
-export { YourWebComponent } from './src/your-webcomponent';
+export { AnalyticsManager } from './src/analytics-manager';
