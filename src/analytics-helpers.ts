@@ -130,8 +130,9 @@ export class AnalyticsHelpers implements AnalyticsHelperInterface {
    * @memberof AnalyticsHelpers
    */
   private get domInteractive(): number | undefined {
-    if (!window.performance) return undefined;
-    const performanceEntries = window.performance.getEntriesByType?.(
+    if (!window.performance || !window.performance.getEntriesByType)
+      return undefined;
+    const performanceEntries = window.performance.getEntriesByType(
       'navigation'
     ) as PerformanceNavigationTiming[];
     if (performanceEntries.length === 0) return undefined;
