@@ -1,6 +1,7 @@
 export {
-  AnalyticsManager,
+  AnalyticsEvent,
   AnalyticsEventConfig,
+  AnalyticsManager,
   AnalyticsManagerInterface,
 } from './src/analytics-manager';
 
