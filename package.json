@@ -1,7 +1,7 @@
 {
   "name": "@iaux/analytics-manager",
-  "version": "0.0.1-alpha.4",
-  "description": "The Internet Archive Typescript WebComponent template. It is based on the @open-wc template.",
+  "version": "0.0.1-alpha.5",
+  "description": "A manager for Internet Archive analytics.",
   "author": "Internet Archive",
   "license": "AGPL-3.0-only",
   "main": "dist/index.js",
