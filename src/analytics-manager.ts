@@ -20,7 +20,7 @@ export type AnalyticsEvent = {
   /**
    * The event label, used to add specificity to the action, ie "MoreInfoLink"
    *
-   * Defaults to window.locatiioni.pathname if not provided
+   * Defaults to window.location.pathname if not provided
    *
    * @type {string}
    */

@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.com/internetarchive/iaux-your-webcomponent.svg?branch=master)](https://travis-ci.com/internetarchive/iaux-your-webcomponent) [![codecov](https://codecov.io/gh/internetarchive/iaux-your-webcomponent/branch/master/graph/badge.svg)](https://codecov.io/gh/internetarchive/iaux-your-webcomponent)
-
+![Build Status](https://github.com/internetarchive/iaux-analytics-manager/actions/workflows/ci.yml/badge.svg)
+ [![codecov](https://codecov.io/gh/internetarchive/iaux-analytics-manager/branch/main/graph/badge.svg)](https://codecov.io/gh/internetarchive/iaux-analytics-manager)
 # Internet Archive Typescript WebComponent Template
 
 This is a base template for creating Typescript WebComponents. It is based off of the [Open WebComponents generator](https://open-wc.org/docs/development/generator/) with some IA-specific customizations and some development niceities.

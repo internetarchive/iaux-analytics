@@ -1,4 +1,6 @@
-import { html, css, LitElement, customElement, query } from 'lit-element';
+import { html, css, LitElement } from 'lit';
+// eslint-disable-next-line import/extensions
+import { customElement, query } from 'lit/decorators.js';
 import { AnalyticsHelpers } from '../src/analytics-helpers';
 import { AnalyticsManager } from '../src/analytics-manager';
 
@@ -37,7 +39,8 @@ export class AppRoot extends LitElement {
   }
 
   firstUpdated(): void {
-    this.analyticsHelper.trackIaxParameter(window.location);
+    this.analyticsHelper.trackIaxParameter(window.location.href);
+    this.analyticsHelper.trackPageView();
   }
 
   render() {
