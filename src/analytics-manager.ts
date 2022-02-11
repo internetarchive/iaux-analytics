@@ -120,13 +120,19 @@ export class AnalyticsManager implements AnalyticsManagerInterface {
   /** @inheritdoc */
   sendPing(values?: Record<string, any>) {
     const url = this.generateTrackingUrl(values).toString();
-    if (
-      !this.requireImagePing &&
-      typeof window.navigator !== 'undefined' &&
-      typeof window.navigator.sendBeacon !== 'undefined'
-    ) {
-      window.navigator.sendBeacon(url);
-    } else {
+    if (this.requireImagePing) {
+      this.sendPingViaImage(url);
+      return;
+    }
+
+    // `navigator` has to be bound to ensure it does not error in some browsers
+    // https://xgwang.me/posts/you-may-not-know-beacon/#it-may-throw-error%2C-be-sure-to-catch
+    const send = navigator.sendBeacon && navigator.sendBeacon.bind(navigator);
+
+    try {
+      // if `send` is `undefined` it'll throw and fall back to the image ping
+      send!(url);
+    } catch (err) {
       this.sendPingViaImage(url);
     }
   }
