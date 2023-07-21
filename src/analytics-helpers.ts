@@ -77,23 +77,23 @@ export class AnalyticsHelpers implements AnalyticsHelperInterface {
       event.loadtime = domInteractive; // loadtime is the historical name for this event
     }
     if (defaultFontSize) {
-      event.ga_cd1 = defaultFontSize;
+      event.iaprop_fontSize = defaultFontSize;
     }
 
     if ('devicePixelRatio' in window) {
-      event.ga_cd2 = window.devicePixelRatio;
+      event.iaprop_devicePixelRatio = window.devicePixelRatio;
     }
 
     if (options?.mediaType) {
-      event.ga_cd3 = options.mediaType;
+      event.iaprop_mediaType = options.mediaType;
     }
 
     if (options?.mediaLanguage) {
-      event.ga_cd4 = options.mediaLanguage;
+      event.iaprop_mediaLanguage = options.mediaLanguage;
     }
 
     if (options?.primaryCollection) {
-      event.ga_cd5 = options.primaryCollection;
+      event.iaprop_primaryCollection = options.primaryCollection;
     }
 
     if (options?.page) {
