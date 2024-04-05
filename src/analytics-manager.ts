@@ -76,7 +76,7 @@ export class AnalyticsManager implements AnalyticsManagerInterface {
    */
   private readonly NO_SAMPLING_SERVICE = 'ao_no_sampling';
 
-  private readonly DEFAULT_IMAGE_URL = 'https://athena.archive.org/0.gif';
+  private readonly DEFAULT_IMAGE_URL = 'https://analytics.archive.org/0.gif';
 
   private defaultService: string;
 
